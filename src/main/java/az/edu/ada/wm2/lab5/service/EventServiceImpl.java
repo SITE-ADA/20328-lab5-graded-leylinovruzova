@@ -84,11 +84,15 @@ public class EventServiceImpl implements EventService {
 
     // Custom methods
     @Override
-    public List<Event> getEventsByTag(String tag) {
-        return eventRepository.findAll().stream()
-                .filter(e -> e.getTags() != null && e.getTags().contains(tag))
-                    .collect(Collectors.toList());
-        )
+    public List<Event> getUpcomingEvents() {
+        LocalDateTime now = LocalDateTime.now();
+
+        return eventRepository.findAll()
+                .stream()
+                .filter(e -> e != null && e.getEventDateTime() != null)
+                .filter(e -> e.getEventDateTime().isAfter(now))
+                .sorted((a, b) -> a.getEventDateTime().compareTo(b.getEventDateTime()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -158,8 +162,22 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public Event updateEventPrice(UUID id, BigDecimal newPrice) {
+        if (id == null) {
+            throw new IllegalArgumentException("Event id cannot be null");
+        }
+        if (newPrice == null) {
+            throw new IllegalArgumentException("New price cannot be null");
+        }
+        if (newPrice.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("New price is negative");
+        }
 
-        return null;
+        Event existingEvent = eventRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Event not found with id: "+ id));
+
+        existingEvent.setTicketPrice(newPrice);
+        return eventRepository.save(existingEvent);
+
     }
 
 }
