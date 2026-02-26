@@ -86,15 +86,17 @@ public class EventServiceImpl implements EventService {
     @Override
     public List<Event> getEventsByTag(String tag) {
         return eventRepository.findAll().stream()
-                .filter(event -> event.getTags() != null && e.getTags().contains(tag))
+                .filter(e -> e.getTags() != null && e.getTags().contains(tag))
                     .collect(Collectors.toList());
         )
     }
 
     @Override
     public List<Event> getUpcomingEvents() {
-
-        return List.of();
+        LocalDateTime now = LocalDateTime.now();
+        return eventRepository.findAll().stream()
+                .filter(e -> e.getEventDateTime() != null && e.getEventDateTime().isAfter(now))
+                .collect(Collectors.toList());
     }
 
     @Override
